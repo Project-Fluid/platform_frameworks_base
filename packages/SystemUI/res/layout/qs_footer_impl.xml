@@ -30,6 +30,8 @@
     android:clipChildren="false"
     android:clipToPadding="false">
 
+    <include layout="@layout/brightness_mirror"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"

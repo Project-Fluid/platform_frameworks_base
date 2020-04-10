@@ -50,10 +50,15 @@ import com.android.systemui.statusbar.policy.RemoteInputQuickSettingsDisabler;
 import com.android.systemui.util.InjectionInflationController;
 import com.android.systemui.util.LifecycleFragment;
 
+import com.android.systemui.settings.BrightnessController;
+import com.android.systemui.settings.ToggleSliderView;
+import com.android.systemui.statusbar.policy.BrightnessMirrorController;
+import com.android.systemui.statusbar.policy.BrightnessMirrorController.BrightnessMirrorListener;
+
 import javax.inject.Inject;
 
 public class QSFragment extends LifecycleFragment implements QS, CommandQueue.Callbacks,
-        StatusBarStateController.StateListener {
+        StatusBarStateController.StateListener, BrightnessMirrorListener {
     private static final String TAG = "QS";
     private static final boolean DEBUG = false;
     private static final String EXTRA_EXPANDED = "expanded";
@@ -64,6 +69,9 @@ public class QSFragment extends LifecycleFragment implements QS, CommandQueue.Ca
     private boolean mQsExpanded;
     private boolean mHeaderAnimating;
     private boolean mStackScrollerOverscrolling;
+
+    private BrightnessMirrorController mBrightnessMirrorController;
+   private BrightnessController mBrightnessController;
 
     private long mDelay;
 
@@ -85,6 +93,8 @@ public class QSFragment extends LifecycleFragment implements QS, CommandQueue.Ca
     private final QSTileHost mHost;
     private boolean mShowCollapsedOnKeyguard;
     private boolean mLastKeyguardAndExpanded;
+
+    private ToggleSliderView mBrightnessSlider;
     /**
      * The last received state from the controller. This should not be used directly to check if
      * we're on keyguard but use {@link #isKeyguardShowing()} instead since that is more accurate
@@ -141,6 +151,10 @@ public class QSFragment extends LifecycleFragment implements QS, CommandQueue.Ca
         setHost(mHost);
         mStatusBarStateController.addCallback(this);
         onStateChanged(mStatusBarStateController.getState());
+
+	mBrightnessSlider = view.findViewById(R.id.brightness_slider);
+	mBrightnessController = new BrightnessController(getContext(),
+                mBrightnessSlider);
     }
 
     @Override
@@ -162,6 +176,23 @@ public class QSFragment extends LifecycleFragment implements QS, CommandQueue.Ca
             mQSPanel.getTileLayout().saveInstanceState(outState);
         }
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mBrightnessMirrorController != null) {
+            mBrightnessMirrorController.addCallback(this);
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDestroy();
+        if (mBrightnessMirrorController != null) {
+            mBrightnessMirrorController.removeCallback(this);
+        }
+    }
+
 
     @VisibleForTesting
     boolean isListening() {
@@ -197,6 +228,7 @@ public class QSFragment extends LifecycleFragment implements QS, CommandQueue.Ca
                 mQSAnimator.onRtlChanged();
             }
         }
+	updateBrightnessMirror();
     }
 
     private void setEditLocation(View view) {
@@ -398,6 +430,30 @@ public class QSFragment extends LifecycleFragment implements QS, CommandQueue.Ca
 
         if (mQSAnimator != null) {
             mQSAnimator.setPosition(expansion);
+        }
+    }
+
+    public void setBrightnessMirror(BrightnessMirrorController c) {
+        if (mBrightnessMirrorController != null) {
+            mBrightnessMirrorController.removeCallback(this);
+        }
+        mBrightnessMirrorController = c;
+        if (mBrightnessMirrorController != null) {
+            mBrightnessMirrorController.addCallback(this);
+        }
+        updateBrightnessMirror();
+    }
+
+    @Override
+    public void onBrightnessMirrorReinflated(View brightnessMirror) {
+        updateBrightnessMirror();
+    }
+
+    public void updateBrightnessMirror() {
+        if (mBrightnessMirrorController != null) {
+            ToggleSliderView mirrorSlider = mBrightnessMirrorController.getMirror().findViewById(R.id.brightness_slider);
+            mBrightnessSlider.setMirror(mirrorSlider);
+            mBrightnessSlider.setMirrorController(mBrightnessMirrorController);
         }
     }
 

@@ -18,7 +18,7 @@
           android:gravity="center_vertical|fill_horizontal">
         <shape android:shape="rectangle"
                android:tint="?android:attr/colorControlActivated">
-            <size android:height="@dimen/seek_bar_height" />
+            <size android:height="50dp" />
             <solid android:color="@color/white_disabled" />
             <corners android:radius="@dimen/seek_bar_corner_radius" />
         </shape>
@@ -27,9 +27,9 @@
           android:gravity="center_vertical|fill_horizontal">
         <scale android:scaleWidth="100%">
             <shape android:shape="rectangle"
-                   android:tint="?android:attr/colorControlActivated">
-                <size android:height="@dimen/seek_bar_height" />
-                <solid android:color="@android:color/white" />
+                   android:tint="?android:attr/colorAccent">
+                <size android:height="50dp" />
+                <solid android:color="?android:attr/colorAccent" />
                 <corners android:radius="@dimen/seek_bar_corner_radius" />
             </shape>
         </scale>
